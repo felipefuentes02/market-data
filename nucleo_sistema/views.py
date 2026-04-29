@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import Producto, Venta, DetalleVenta, Inventario, Tienda, Usuario, DetalleFactura, ClienteFiado, AbonoFiado, CajaSesion, Factura, Comuna
 from django.shortcuts import render, redirect
 from django.core.mail import send_mail
-import random, string
+import random, string, resend
 from django.contrib import messages
 from django.db.models.functions import TruncDate
 from datetime import timedelta
@@ -965,20 +965,18 @@ def procesar_recuperacion(request):
                 usuario_obj.requiere_cambio_pass = True
                 usuario_obj.save()
                 
-                # Envío del correo
-                send_mail(
-                    'Recuperación de Contraseña - Market Data',
-                    f'Hola {usuario_obj.nombre}, tu clave temporal de acceso es: {clave_temporal}. '
-                    f'Por favor, cámbiala al ingresar.',
-                    'soporte@marketdata.cl',
-                    [usuario_obj.mail],
-                    fail_silently=False,
-                )
+                resend.api_key = "re_YVqYTPBJ_64NVsPzE2rBWSP5trtg2Z69e"
                 
-                # --- INYECCIÓN EXACTA DE TUS LÍNEAS AQUÍ ---
+                resend.Emails.send({
+                    "from": "onboarding@resend.dev",
+                    "to": usuario_obj.mail, 
+                    "subject": "Recuperación de Contraseña - Market Data",
+                    "html": f"<p>Hola {usuario_obj.nombre}, tu clave temporal de acceso es: <strong>{clave_temporal}</strong>.</p><p>Por favor, cámbiala al ingresar.</p>"
+                })
+                # ---------------------------------------------
+                
                 messages.success(request, 'Éxito: Se ha enviado una clave temporal a tu correo. Por favor, revisa tu bandeja de entrada o spam.')
                 return redirect('pantalla_login')
-                # -------------------------------------------
                 
             else:
                 return render(request, 'nucleo_sistema/recuperar_password.html', {
