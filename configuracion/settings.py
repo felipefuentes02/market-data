@@ -114,6 +114,14 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# ANALÍTICA: Para producción se usa SMTP
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'soporte@marketdata.cl'
+# --- MOTOR DE CORREOS SMTP (PRODUCCIÓN/REAL) ---
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+# Tu correo real de Gmail
+EMAIL_HOST_USER = 'FELIPEFUENTES02@GMAIL.COM' # O el correo que usarás para enviar
+
+# La clave de 16 caracteres que te dio Google (sin espacios)
+EMAIL_HOST_PASSWORD = 'xcfpvqvhrmoeauoq'

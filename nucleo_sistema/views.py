@@ -940,28 +940,26 @@ def pantalla_recuperar_password(request):
     return render(request, 'nucleo_sistema/recuperar_password.html')
 
 def procesar_recuperacion(request):
-    #verifica el correo, valida el rol y envia la clave temporal
+    """ Verifica el correo, valida el rol analíticamente y envía la clave temporal. """
     if request.method == 'POST':
-        #1 captura y limpieza de espacios
+        # Captura y limpieza de espacios
         email_ingresado = request.POST.get('mail', '').strip()
         
         try:
-            # 2 busqueda mayusculas/minusculas (__iexact)
+            # Búsqueda insensible a mayúsculas
             usuario_obj = Usuario.objects.get(mail__iexact=email_ingresado)
-            
-            # 3 limpieza y validación estricta del rol
             rol_limpio = usuario_obj.rol.strip().upper()
             
             if rol_limpio in ['ADMINISTRADOR', 'ANALISTA']:
-                # genera clave temporal de 8 caracteres
+                # Generar clave temporal
                 caracteres = string.ascii_letters + string.digits
                 clave_temporal = ''.join(random.choice(caracteres) for i in range(8))
                 
-                #guarda en base de datos
+                # Guardar en base de datos
                 usuario_obj.password = clave_temporal
                 usuario_obj.save()
                 
-                #envio al coreo
+                # Envío del correo
                 send_mail(
                     'Recuperación de Contraseña - Market Data',
                     f'Hola {usuario_obj.nombre}, tu clave temporal de acceso es: {clave_temporal}. '
@@ -971,17 +969,17 @@ def procesar_recuperacion(request):
                     fail_silently=False,
                 )
                 
-                return render(request, 'nucleo_sistema/login.html', {
-                    'mensaje': 'Se ha enviado una clave temporal a su correo.'
-                })
+                # --- INYECCIÓN EXACTA DE TUS LÍNEAS AQUÍ ---
+                messages.success(request, 'Éxito: Se ha enviado una clave temporal a tu correo. Por favor, revisa tu bandeja de entrada o spam.')
+                return redirect('pantalla_login')
+                # -------------------------------------------
+                
             else:
-                # el correo existe pero es vendedor
                 return render(request, 'nucleo_sistema/recuperar_password.html', {
                     'error': 'El correo no coincide con un Administrador o Analista activo.'
                 })
                 
         except Usuario.DoesNotExist:
-            #correo no existe en bbdd
             return render(request, 'nucleo_sistema/recuperar_password.html', {
                 'error': 'El correo no coincide con un Administrador o Analista activo.'
             })
