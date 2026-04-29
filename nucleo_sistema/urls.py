@@ -5,7 +5,7 @@ from .views import (buscar_producto_por_codigo, registrar_venta, pantalla_pos, c
                     registrar_producto, pantalla_abastecimiento, registrar_abastecimiento_api, api_buscar_productos,
                     pantalla_ajustes, registrar_ajuste_api, pantalla_configuracion, registrar_usuario,api_reset_clave,
                     api_cambiar_estado, pantalla_recuperar_password, procesar_recuperacion, pantalla_reportes, pantalla_consola_analista,
-                    exportar_inventario_excel, api_buscar_cliente)
+                    exportar_inventario_excel, api_buscar_cliente, procesar_cambio_password)
 
 urlpatterns = [
     # Rutas de la API (Backend puro JSON)
@@ -42,5 +42,6 @@ urlpatterns = [
     path('dashboard/reportes/', pantalla_reportes, name='pantalla_reportes'),
     path('dashboard/analista/', pantalla_consola_analista, name='pantalla_consola_analista'),
     path('dashboard/ajustes/exportar/', exportar_inventario_excel, name='exportar_inventario_excel'),
+    path('login/procesar-cambio/', procesar_cambio_password, name='procesar_cambio_password'),
     
 ]

@@ -404,8 +404,13 @@ def pantalla_login(request):
             )
             
             if not usuario_objeto.es_activo:
-                messages.error(request, 'Acceso denegado: Esta cuenta ha sido desactivada por gerencia.')
+                messages.error(request, 'Acceso denegado: Esta cuenta ha sido desactivada.')
                 return redirect('pantalla_login')
+            
+            if usuario_objeto.requiere_cambio_pass:
+                # Guardamos el ID en una sesión temporal aislada
+                request.session['usuario_en_cambio'] = usuario_objeto.id_usuario
+                return render(request, 'nucleo_sistema/cambiar_password.html')
             
             # iyeccion de variables globales
             request.session['id_usuario'] = usuario_objeto.id_usuario
@@ -957,6 +962,7 @@ def procesar_recuperacion(request):
                 
                 # Guardar en base de datos
                 usuario_obj.password = clave_temporal
+                usuario_obj.requiere_cambio_pass = True
                 usuario_obj.save()
                 
                 # Envío del correo
@@ -1423,3 +1429,38 @@ def api_buscar_cliente(request):
         })
     except ClienteFiado.DoesNotExist:
         return JsonResponse({'existe': False})
+
+def procesar_cambio_password(request):
+    """ Valida y actualiza la clave obligatoria del usuario """
+    if request.method == 'POST':
+        # Validar que el usuario venga del flujo correcto
+        id_temp = request.session.get('usuario_en_cambio')
+        if not id_temp:
+            return redirect('pantalla_login')
+
+        nueva_clave = request.POST.get('nueva_clave', '').strip()
+        confirmar_clave = request.POST.get('confirmar_clave', '').strip()
+
+        # Validación algorítmica
+        if nueva_clave != confirmar_clave:
+            messages.error(request, 'Las contraseñas no coinciden. Inténtalo de nuevo.')
+            return render(request, 'nucleo_sistema/cambiar_password.html')
+
+        try:
+            # Impactar la base de datos
+            usuario = Usuario.objects.get(id_usuario=id_temp)
+            usuario.password = nueva_clave
+            usuario.requiere_cambio_pass = False # Apagamos la alarma
+            usuario.save()
+
+            # Destruir la sesión temporal por seguridad
+            del request.session['usuario_en_cambio']
+
+            # Redirigir al inicio con éxito
+            messages.success(request, 'Clave actualizada correctamente. Ahora puedes iniciar sesión.')
+            return redirect('pantalla_login')
+
+        except Usuario.DoesNotExist:
+            return redirect('pantalla_login')
+
+    return redirect('pantalla_login')

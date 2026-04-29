@@ -208,6 +208,7 @@ class Usuario(models.Model):
     mail = models.CharField(max_length=100)
     ultimo_ingreso = models.DateTimeField(blank=True, null=True)
     password = models.CharField(max_length=25)
+    requiere_cambio_pass = models.BooleanField(default=False)
     es_activo = models.BooleanField()
     fecha_creacion = models.DateTimeField()
     rut_tienda = models.ForeignKey('Tienda', models.DO_NOTHING, db_column='rut_tienda', blank=True, null=True)
