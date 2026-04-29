@@ -114,11 +114,14 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# --- MOTOR DE CORREOS SMTP (PRODUCCIÓN/REAL) ---
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# --- MOTOR DE CORREOS SMTP (GOOGLE SSL BYPASS) ---
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
+EMAIL_PORT = 465                  # Puerto alternativo SSL
+EMAIL_USE_SSL = True              # Encendemos la encriptación total
+EMAIL_USE_TLS = False             # Apagamos TLS para no causar conflicto
+EMAIL_HOST_USER = 'FELIPEFUENTES02@GMAIL.COM'
+EMAIL_HOST_PASSWORD = 'xcfpvqvhrmoeauoq'
 
 # Tu correo real de Gmail
 EMAIL_HOST_USER = 'FELIPEFUENTES02@GMAIL.COM' # O el correo que usarás para enviar
