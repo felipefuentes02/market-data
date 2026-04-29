@@ -1,0 +1,14 @@
+# Exclusiones del entorno local
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+entorno_virtual/
+venv/
+env/
+.env
+.git
+.gitignore
+
+# Excluir la base de datos local (Render usará tu instancia de PostgreSQL)
+db.sqlite3
