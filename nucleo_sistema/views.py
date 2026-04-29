@@ -966,10 +966,11 @@ def procesar_recuperacion(request):
                 usuario_obj.save()
                 
                 resend.api_key = "re_YVqYTPBJ_64NVsPzE2rBWSP5trtg2Z69e"
+                correo_destino = usuario_obj.mail.strip().lower()
                 
                 resend.Emails.send({
                     "from": "onboarding@resend.dev",
-                    "to": usuario_obj.mail, 
+                    "to": correo_destino,
                     "subject": "Recuperación de Contraseña - Market Data",
                     "html": f"<p>Hola {usuario_obj.nombre}, tu clave temporal de acceso es: <strong>{clave_temporal}</strong>.</p><p>Por favor, cámbiala al ingresar.</p>"
                 })
