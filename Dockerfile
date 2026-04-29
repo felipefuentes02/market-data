@@ -26,5 +26,5 @@ COPY . /app/
 # 7. Exponer el puerto estándar
 EXPOSE 8000
 
-# 8. Motor de arranque en producción apuntando a tu carpeta 'configuracion'
-CMD ["gunicorn", "configuracion.wsgi:application", "--bind", "0.0.0.0:8000"]
+# 8. Motor de arranque en producción con inyección previa de migración
+CMD python manage.py migrate && gunicorn configuracion.wsgi:application --bind 0.0.0.0:8000
