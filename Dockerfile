@@ -23,6 +23,9 @@ RUN pip install -r requerimientos.txt
 # 6. Copiar el resto del ecosistema del proyecto
 COPY . /app/
 
+# INYECTAR ESTO: Recopilar archivos estáticos automáticamente sin pedir confirmación
+RUN python manage.py collectstatic --noinput
+
 # 7. Exponer el puerto estándar
 EXPOSE 8000
 
