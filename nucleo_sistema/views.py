@@ -391,13 +391,11 @@ def cerrar_sesion(request):
     return redirect('pantalla_login')
 
 def pantalla_login(request):
-    """
-    Controla el acceso al sistema validando credenciales
-    y redirige según el rol: Administrador, Analista o Vendedor.
-    """
+    #acceso al sistema validando credenciales y redirige segun rol
     if request.method == 'POST':
-        usuario_ingresado = request.POST.get('usuario')
-        clave_ingresada = request.POST.get('clave')
+        #strip() como medida preventiva contra espacio
+        usuario_ingresado = request.POST.get('usuario', '').strip()
+        clave_ingresada = request.POST.get('clave', '').strip()
 
         try:
             usuario_objeto = Usuario.objects.get(
@@ -405,12 +403,11 @@ def pantalla_login(request):
                 password=clave_ingresada
             )
             
-            # --- CANDADO DE SEGURIDAD ANALÍTICA ---
             if not usuario_objeto.es_activo:
                 messages.error(request, 'Acceso denegado: Esta cuenta ha sido desactivada por gerencia.')
                 return redirect('pantalla_login')
             
-            # INYECCIÓN DINÁMICA DE VARIABLES GLOBALES
+            # iyeccion de variables globales
             request.session['id_usuario'] = usuario_objeto.id_usuario
             request.session['rol'] = usuario_objeto.rol 
 
@@ -419,7 +416,7 @@ def pantalla_login(request):
             print(f"1. ROL EXTRAÍDO DE BD: '{usuario_objeto.rol}'")
             print(f"2. ROL LIMPIO PARA COMPARAR: '{rol_limpio}'")
             
-            # --- NUEVO GUARDIA DE TRÁFICO POR ROL ---
+            #guarda trafico del rol
             if rol_limpio == 'ANALISTA':
                 print("3. DECISIÓN: Yendo a Analista")
                 return redirect('pantalla_consola_analista')
@@ -943,43 +940,52 @@ def pantalla_recuperar_password(request):
     return render(request, 'nucleo_sistema/recuperar_password.html')
 
 def procesar_recuperacion(request):
-    """ Verifica el correo y envía la clave temporal. """
+    #verifica el correo, valida el rol y envia la clave temporal
     if request.method == 'POST':
-        email_ingresado = request.POST.get('mail')
+        #1 captura y limpieza de espacios
+        email_ingresado = request.POST.get('mail', '').strip()
         
         try:
-            # Solo permitimos recuperación por correo a Admin y Analista
-            usuario_obj = Usuario.objects.get(
-                mail=email_ingresado, 
-                rol__in=['Administrador', 'Analista']
-            )
+            # 2 busqueda mayusculas/minusculas (__iexact)
+            usuario_obj = Usuario.objects.get(mail__iexact=email_ingresado)
             
-            # Generar clave temporal de 8 caracteres
-            caracteres = string.ascii_letters + string.digits
-            clave_temporal = ''.join(random.choice(caracteres) for i in range(8))
+            # 3 limpieza y validación estricta del rol
+            rol_limpio = usuario_obj.rol.strip().upper()
             
-            # Guardar en base de datos
-            usuario_obj.password = clave_temporal
-            usuario_obj.save()
-            
-            # Envío del correo
-            send_mail(
-                'Recuperación de Contraseña - Market Data',
-                f'Hola {usuario_obj.nombre}, tu clave temporal de acceso es: {clave_temporal}. '
-                f'Por favor, cámbiala al ingresar.',
-                'soporte@marketdata.cl',
-                [usuario_obj.mail],
-                fail_silently=False,
-            )
-            
-            return render(request, 'nucleo_sistema/login.html', {
-                'mensaje': 'Se ha enviado una clave temporal a su correo.'
-            })
-            
+            if rol_limpio in ['ADMINISTRADOR', 'ANALISTA']:
+                # genera clave temporal de 8 caracteres
+                caracteres = string.ascii_letters + string.digits
+                clave_temporal = ''.join(random.choice(caracteres) for i in range(8))
+                
+                #guarda en base de datos
+                usuario_obj.password = clave_temporal
+                usuario_obj.save()
+                
+                #envio al coreo
+                send_mail(
+                    'Recuperación de Contraseña - Market Data',
+                    f'Hola {usuario_obj.nombre}, tu clave temporal de acceso es: {clave_temporal}. '
+                    f'Por favor, cámbiala al ingresar.',
+                    'soporte@marketdata.cl',
+                    [usuario_obj.mail],
+                    fail_silently=False,
+                )
+                
+                return render(request, 'nucleo_sistema/login.html', {
+                    'mensaje': 'Se ha enviado una clave temporal a su correo.'
+                })
+            else:
+                # el correo existe pero es vendedor
+                return render(request, 'nucleo_sistema/recuperar_password.html', {
+                    'error': 'El correo no coincide con un Administrador o Analista activo.'
+                })
+                
         except Usuario.DoesNotExist:
+            #correo no existe en bbdd
             return render(request, 'nucleo_sistema/recuperar_password.html', {
                 'error': 'El correo no coincide con un Administrador o Analista activo.'
             })
+            
     return redirect('pantalla_login')
 
 def pantalla_reportes(request):
