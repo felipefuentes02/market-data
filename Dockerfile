@@ -1,5 +1,5 @@
 # 1. Definimos la imagen base oficial y ligera de Python
-FROM python:3.10-slim
+FROM python:3.12-slim
 
 # 2. Variables de entorno analíticas para optimizar el rendimiento
 ENV PYTHONDONTWRITEBYTECODE=1
